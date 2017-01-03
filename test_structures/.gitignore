@@ -1,4 +1,16 @@
-# Ignore everything in this directory
-*
-# Except this file
-!.gitignore
+!Source_Folder
+!Source_Folder/*
+!Sync_Folder
+!Sync_Folder/*
+!Source_Folder/Folder A
+!Source_Folder/Folder A/*
+!Source_Folder/Folder B
+!Source_Folder/Folder B/*
+!Source_Folder/Folder C
+!Source_Folder/Folder C/*
+!Sync_Folder/Folder A
+!Sync_Folder/Folder A/*
+!Sync_Folder/Folder B
+!Sync_Folder/Folder B/*
+!Sync_Folder/Folder C
+!Sync_Folder/Folder C/*
