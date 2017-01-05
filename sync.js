@@ -4,11 +4,22 @@ var fs = require('fs-extra');
 var async = require('async-series');
 
 function syncDirectories(source_dir_path, sync_dir_path) {
-    compareDirectories(source_dir_path, sync_dir_path)
+    return new Promise((res) => {
+        compareDirectories(source_dir_path, sync_dir_path)
         .then(getMinimumFolders)
         .then((rslt) => { return generateInstructions(rslt, sync_dir_path, source_dir_path); })
         .then(syncAllContent)
-        .then((rslt) => { console.dir(rslt); });
+        .then((rslt) => {
+            if (rslt.folders != null) {
+                console.dir(rslt.folders);
+            }
+            if (rslt.files != null) {
+                console.dir(rslt.files);
+            }
+            return rslt;
+        })
+        .then(res);
+    });
 }
 
 function compareDirectories(source_dir_path, sync_dir_path) {
@@ -145,8 +156,8 @@ function syncAllContent(data) {
         async(data.folders, (rslt1) => {
             async(data.files, (rslt2) => {
                 res({
-                    folders: rslt1.message,
-                    files: rslt2.message
+                    folders: rslt1,
+                    files: rslt2
                 })
             });
         });
