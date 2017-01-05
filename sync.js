@@ -3,7 +3,8 @@ var __ = require('underscore');
 
 function syncDirectories(source_dir_path, sync_dir_path) {
     compareDirectories(source_dir_path, sync_dir_path)
-        .then((rslt) => { return minimizeFolderInstructions(rslt); })
+        .then(getMinimumFolders)
+        .then((rslt) => { return generateInstructions(rslt, sync_dir_path); })
         .then((rslt) => { console.dir(rslt); });
 }
 
@@ -18,7 +19,6 @@ function compareDirectories(source_dir_path, sync_dir_path) {
         //WILL FIRE AFTER SYNC DIRECTORY IS MAPPED AND SOURCE DIRECTORY HAS BEEN MAPPED
         var finished2 = __.after(3, () => {
             var folders_to_add = compareListToMap(source_dirs, dirs_map);
-            console.log('done with folders');
             var files_to_add = compareListToMap(source_files, files_map);
             res({ folders: folders_to_add, files: files_to_add });
         });
@@ -71,23 +71,8 @@ function mapRelativeNames(list, predicate) {
     });
 }
 
-//takes an array and converts it to an object (used as simple hash-table)
-function convertListToHash(list) {
-    var rslt = {};
-    for (var i = 0; i < list.length; i++) {
-        rslt[list[i]] = true;
-    }
-    return rslt;
-}
-
-//iterate over a list and return the values that exist in the map
-function compareListToMap(list, map) {
-    return list.filter((item) => {
-        return map[item] == null;
-    });
-}
-
-function minimizeFolderInstructions(data) {
+//reduce folders for minimum number of inserts
+function getMinimumFolders(data) {
     data.folders = generateDirectory(data.folders);
     data.folders = getLeaves(data.folders, "");
     data.folders = generateListFromDelimeter(data.folders, ';');
@@ -125,9 +110,36 @@ function getLeaves(array, folder_name) {
     }
 }
 
-function generateListFromDelimeter(list, delimeter) {
-    return String(list).substring(0, list.length - 1).split(delimeter);
+//generate instructions to insert folders and files
+function generateInstructions(data, predicate) {
+    var func = (item) => { return predicate + '\\' + item; };
+    return {
+        folders: data.folders.map(func),
+        files: data.files.map(func)
+    }
 }
 
 module.exports.syncDirectories = syncDirectories;
 module.exports.compareDirectories = compareDirectories;
+
+//UTILITY FUNCTIONS
+//takes an array and converts it to an object (used as simple hash-table)
+function convertListToHash(list) {
+    var rslt = {};
+    for (var i = 0; i < list.length; i++) {
+        rslt[list[i]] = true;
+    }
+    return rslt;
+}
+
+//iterate over a list and return the values that exist in the map
+function compareListToMap(list, map) {
+    return list.filter((item) => {
+        return map[item] == null;
+    });
+}
+
+//turn delimited list into array (reverse of split)
+function generateListFromDelimeter(list, delimeter) {
+    return String(list).substring(0, list.length - 1).split(delimeter);
+}
