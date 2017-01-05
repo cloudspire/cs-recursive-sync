@@ -3,6 +3,7 @@ var __ = require('underscore');
 
 function syncDirectories(source_dir_path, sync_dir_path) {
     compareDirectories(source_dir_path, sync_dir_path)
+        .then((rslt) => { return minimizeFolderInstructions(rslt); })
         .then((rslt) => { console.dir(rslt); });
 }
 
@@ -17,6 +18,7 @@ function compareDirectories(source_dir_path, sync_dir_path) {
         //WILL FIRE AFTER SYNC DIRECTORY IS MAPPED AND SOURCE DIRECTORY HAS BEEN MAPPED
         var finished2 = __.after(3, () => {
             var folders_to_add = compareListToMap(source_dirs, dirs_map);
+            console.log('done with folders');
             var files_to_add = compareListToMap(source_files, files_map);
             res({ folders: folders_to_add, files: files_to_add });
         });
@@ -83,6 +85,48 @@ function compareListToMap(list, map) {
     return list.filter((item) => {
         return map[item] == null;
     });
+}
+
+function minimizeFolderInstructions(data) {
+    data.folders = generateDirectory(data.folders);
+    data.folders = getLeaves(data.folders, "");
+    data.folders = generateListFromDelimeter(data.folders, ';');
+    return data;
+}
+
+//create directory structure
+function generateDirectory(array) {
+    var dir = {}, current, tmp;
+    for (var i = 0; i < array.length; i++) {
+        current = dir;
+        tmp = array[i].split('\\');
+        for (var j = 0; j < tmp.length; j++) {
+            if (current[tmp[j]] == null) {
+                current[tmp[j]] = {};
+            }
+            current = current[tmp[j]];
+        }
+    }
+    return dir;
+}
+
+//get all terminal nodes (leaves)
+function getLeaves(array, folder_name) {
+    var keys = Object.keys(array);
+    if (keys.length == 0) {
+        return folder_name + ';';
+    } else {
+        var tmp = '', next;
+        for (var i = 0; i < keys.length; i++) {
+            next = (folder_name == "" ? "" : folder_name + '\\') + keys[i];
+            tmp += getLeaves(array[keys[i]], next);
+        }
+        return tmp;
+    }
+}
+
+function generateListFromDelimeter(list, delimeter) {
+    return String(list).substring(0, list.length - 1).split(delimeter);
 }
 
 module.exports.syncDirectories = syncDirectories;
