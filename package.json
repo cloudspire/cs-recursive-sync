@@ -1,7 +1,7 @@
 {
   "name": "cs-recursive-sync",
   "version": "1.0.0",
-  "description": "",
+  "description": "A recursive synchronization algorithm written in Node JS. Very helpful for backing up hard-drives!",
   "main": "index.js",
   "scripts": {
     "test": "node test.js"
@@ -15,5 +15,9 @@
     "node-dir": "^0.1.16",
     "path": "^0.12.7",
     "underscore": "^1.8.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cloudspire/cs-recursive-sync.git"
   }
 }
