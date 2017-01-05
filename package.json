@@ -9,6 +9,7 @@
   "author": "Cloudspire Technology",
   "license": "MIT",
   "dependencies": {
+    "async-series": "0.0.1",
     "fs": "0.0.1-security",
     "fs-extra": "^1.0.0",
     "node-dir": "^0.1.16",

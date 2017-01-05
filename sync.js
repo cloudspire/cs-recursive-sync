@@ -1,10 +1,13 @@
 var dir = require('node-dir');
 var __ = require('underscore');
+var fs = require('fs-extra');
+var async = require('async-series');
 
 function syncDirectories(source_dir_path, sync_dir_path) {
     compareDirectories(source_dir_path, sync_dir_path)
         .then(getMinimumFolders)
-        .then((rslt) => { return generateInstructions(rslt, sync_dir_path); })
+        .then((rslt) => { return generateInstructions(rslt, sync_dir_path, source_dir_path); })
+        .then(syncAllContent)
         .then((rslt) => { console.dir(rslt); });
 }
 
@@ -111,12 +114,43 @@ function getLeaves(array, folder_name) {
 }
 
 //generate instructions to insert folders and files
-function generateInstructions(data, predicate) {
-    var func = (item) => { return predicate + '\\' + item; };
+function generateInstructions(data, predicate1, predicate2) {
+    var func1 = (item) => {
+        return (done) => {
+            var dir = predicate1 + '\\' + item;
+            fs.mkdirs(dir, (err) => { done(err); });
+            //console.log('copy: ' + dir);
+            //done();
+        }
+    };
+    var func2 = (item) => {
+        return (done) => {
+            var f1 = predicate2 + '\\' + item;
+            var f2 = predicate1 + '\\' + item;
+            fs.copy(f1, f2, (err) => { done(err); });
+            //console.log('copy from: ' + f1);
+            //console.log('copy to: ' + f2);
+            //done();
+        }
+    };
     return {
-        folders: data.folders.map(func),
-        files: data.files.map(func)
+        folders: data.folders.map(func1),
+        files: data.files.map(func2)
     }
+}
+
+//copy files to sync directory
+function syncAllContent(data) {
+    return new Promise((res) => {
+        async(data.folders, (rslt1) => {
+            async(data.files, (rslt2) => {
+                res({
+                    folders: rslt1.message,
+                    files: rslt2.message
+                })
+            });
+        });
+    });
 }
 
 module.exports.syncDirectories = syncDirectories;
